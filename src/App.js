@@ -1,24 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './frontend/contexts/AuthContext.js';
+import PrivateRoute from './frontend/utils/PrivateRoutes.js'; // Corrected to singular 'PrivateRoute'; change back if your file is 'PrivateRoutes.js'
+import LoginPage from './frontend/Pages/LoginPage.js';
+import DashboardPage from './frontend/Pages/DashboardPage.js';
+import { motion } from 'framer-motion'; // For animations
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <DashboardPage />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/" element={<LoginPage />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </motion.div>
   );
 }
 
