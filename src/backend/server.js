@@ -6,7 +6,12 @@ const authRoutes = require('./routes/authRoute');
 const app = express();
 DB();
 
-app.use(cors()); // Allow frontend requests
+app.use(cors({
+   origin: "http://localhost:3000",   // ✅ allow frontend
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+    credentials: true, 
+})); // Allow frontend requests
 app.use(express.json());
 
 // Routes

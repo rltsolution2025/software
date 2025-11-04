@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
-import api from '../services/api.js';
+import React, { createContext, useState, useEffect } from "react";
+import api from "../services/api.js";
 
 export const AuthContext = createContext();
 
@@ -7,24 +7,45 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Runs when app reloads to restore user session
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
+
     if (token) {
-      // Decode token to get user info (or fetch from backend)
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      setUser(decoded);
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1])); // decode JWT
+        setUser({
+          id: decoded.id,
+          role: decoded.role,
+        });
+      } catch (error) {
+        console.error("Invalid token", error);
+        localStorage.removeItem("token");
+      }
     }
+
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
-    const res = await api.post('/auth/login', { username, password });
-    localStorage.setItem('token', res.data.token);
-    setUser({ id: res.data.id, role: res.data.role });
-  };
+ const login = async (username, password, role) => {
+  const res = await api.post("/auth/login", {
+    username,
+    password,
+    role,   // ✅ send role to backend
+  });
+
+  localStorage.setItem("token", res.data.token);
+
+  const decoded = JSON.parse(atob(res.data.token.split(".")[1]));
+
+  setUser({
+    id: decoded.id,
+    role: decoded.role,
+  });
+};
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setUser(null);
   };
 

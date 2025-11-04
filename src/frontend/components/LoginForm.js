@@ -1,12 +1,13 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext.js'; // Adjusted path for standard structure; change to '../../contexts/AuthContext.js' if needed
-import { motion } from 'framer-motion'; // For animations
+import { AuthContext } from '../contexts/AuthContext.js';
+import { motion } from 'framer-motion';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // Added for loading state
+  const [role, setRole] = useState('user'); // Default role
+  const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -14,7 +15,7 @@ const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(username, password);
+      await login(username, password, role); // ✅ passing role here
       navigate('/dashboard');
     } catch (error) {
       alert('Invalid credentials');
@@ -36,6 +37,7 @@ const LoginForm = () => {
             <div className="card-body">
               <h2 className="card-title text-center mb-4">ERP Login</h2>
               <form onSubmit={handleSubmit}>
+
                 <div className="mb-3">
                   <label htmlFor="username" className="form-label">Username</label>
                   <input
@@ -48,6 +50,7 @@ const LoginForm = () => {
                     required
                   />
                 </div>
+
                 <div className="mb-3">
                   <label htmlFor="password" className="form-label">Password</label>
                   <input
@@ -60,6 +63,21 @@ const LoginForm = () => {
                     required
                   />
                 </div>
+
+                {/* ✅ NEW: Role Dropdown */}
+                <div className="mb-3">
+                  <label htmlFor="role" className="form-label">Select Role</label>
+                  <select
+                    id="role"
+                    className="form-control"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                  </select>
+                </div>
+
                 <motion.button
                   type="submit"
                   className="btn btn-primary w-100"
