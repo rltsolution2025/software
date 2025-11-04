@@ -1,30 +1,21 @@
-// const jwt = require('jsonwebtoken');
-
-// const authenticateToken = (req, res, next) => {
-//   const token = req.header('Authorization')?.replace('Bearer ', '');
-//   if (!token) return res.status(401).json({ message: 'Access denied' });
-
-//   jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret', (err, user) => {
-//     if (err) return res.status(403).json({ message: 'Invalid token' });
-//     req.user = user;
-//     next();
-//   });
-// };
-
-// module.exports = { authenticateToken };
-
 const jwt = require("jsonwebtoken");
 
 const authenticateToken = (req, res, next) => {
-  const header = req.headers["authorization"];
-  const token = header && header.split(" ")[1];
+  const authHeader = req.headers["authorization"];
+  console.log("➡️ AUTH HEADER RECEIVED:", authHeader); // <-- Add this
 
-  if (!token) return res.status(401).json({ message: "Token missing" });
+  const token = authHeader && authHeader.split(" ")[1];
+  console.log("➡️ EXTRACTED TOKEN:", token);
 
-  jwt.verify(token, process.env.JWT_SECRET || "jwtsecret", (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid token" });
+  if (!token) return res.status(403).json({ message: "Token missing" });
 
-    req.user = decoded; // ✅ gives role, id
+  jwt.verify(token, process.env.JWT_SECRET || "secret123", (err, decoded) => {
+    if (err) {
+      console.log("❌ JWT ERROR:", err.message);   // <-- Debugging
+      return res.status(403).json({ message: "Invalid token" });
+    }
+
+    req.user = decoded;
     next();
   });
 };
