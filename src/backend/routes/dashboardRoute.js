@@ -7,6 +7,11 @@ router.get('/dashboard', authenticateToken, (req, res) => {
     res.json({
       message: 'Admin Dashboard: Full ERP access',
       data: ['Reports', 'Users', 'Inventory'],
+      user: {
+      id: req.user.id, 
+      username: req.user.username,
+      role: req.user.role,
+    },
     });
   } else {
     res.json({

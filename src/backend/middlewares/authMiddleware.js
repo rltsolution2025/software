@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  console.log("➡️ AUTH HEADER RECEIVED:", authHeader); // <-- Add this
+  console.log("➡️ AUTH HEADER RECEIVED:", authHeader); 
 
   const token = authHeader && authHeader.split(" ")[1];
   console.log("➡️ EXTRACTED TOKEN:", token);
@@ -11,7 +11,7 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET || "secret123", (err, decoded) => {
     if (err) {
-      console.log("❌ JWT ERROR:", err.message);   // <-- Debugging
+      console.log("❌ JWT ERROR:", err.message);  
       return res.status(403).json({ message: "Invalid token" });
     }
 

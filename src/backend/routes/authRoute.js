@@ -1,13 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-
 const { login, logout } = require("../controllers/authController");
-const { authenticateToken } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-// ✅ TEMPORARY ROUTE - use only once to create initial admin
 router.get("/create-admin", async (req, res) => {
   try {
     const existingAdmin = await User.findOne({ username: "admin" });
@@ -30,7 +27,6 @@ router.get("/create-admin", async (req, res) => {
   }
 });
 
-// ✅ Authentication routes
 router.post("/login", login);
 router.post("/logout", logout);
 

@@ -5,22 +5,41 @@ import "bootstrap/dist/css/bootstrap.min.css";
 const Dashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [file, setFile] = useState(null);
-
-  // ✅ Get logged-in userId from token (assuming backend returns userData)
   const [userId, setUserId] = useState("");
 
+  // ✅ Fetch user info using token
   useEffect(() => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("⚠️ No token found. Please log in again.");
+    return;
+  }
 
-    axios
-      .get("http://localhost:5000/api/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setUserId(res.data.userId); // ⬅️ store userId from backend response
-      })
-      .catch((err) => console.log("Dashboard Error:", err));
-  }, []);
+  axios
+    .get("http://localhost:5000/api/dashboard", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((res) => {
+      console.log("Dashboard API response:", res.data);
+
+      // ✅ Get user ID based on backend response
+      const id = res.data.user?.id || res.data.user?._id;
+
+      if (!id) {
+        console.warn("⚠️ No userId found in response:", res.data);
+        alert("User data missing. Please log in again.");
+        return;
+      }
+
+      setUserId(id); // ✅ userId is now set correctly
+      console.log("User ID set:", id);
+    })
+    .catch((err) => {
+      console.error("Dashboard Error:", err);
+      alert("Failed to fetch user info. Please log in again.");
+    });
+}, []);
+
 
   // ✅ Store selected file
   const handleFileUpload = (e) => {
@@ -29,38 +48,58 @@ const Dashboard = () => {
   };
 
   // ✅ Upload to server (POST /upload)
-  const uploadToServer = async () => {
-    if (!file) {
-      alert("Please choose a file");
-      return;
-    }
+  // const uploadToServer = async () => {
+  //   if (!file) {
+  //     alert("Please choose a file");
+  //     return;
+  //   }
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("userId", userId);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("userId", userId); // ✅ send userId to backend
+  //   console.log("Uploading with userId:", userId);
 
-    try {
-      await axios.post("http://localhost:5000/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+  //   try {
+  //     const res = await axios.post(
+  //       "http://localhost:5000/api/upload",
+  //       formData,
+  //       {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       }
+  //     );
 
-      alert("✅ File uploaded successfully!");
-      setFile(null);  // reset input
-    } catch (error) {
-      console.error("Upload Error:", error);
-      alert("❌ File upload failed");
-    }
-  };
+  //     console.log("Upload success:", res.data);
+  //     alert("✅ File uploaded successfully!");
+  //     setFile(null); // reset input
+  //   } catch (error) {
+  //     console.error("Upload Error:", error.response?.data || error.message);
+  //     alert("❌ File upload failed");
+  //   }
+  // };
+const uploadToServer = async () => {
+  if (!file) return alert("Please choose a file");
+  if (!userId) return alert("⚠️ User ID missing. Wait for user info to load.");
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("userId", userId);
+
+  try {
+    const res = await axios.post("http://localhost:5000/api/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    alert("✅ File uploaded successfully!");
+    setFile(null);
+  } catch (error) {
+    console.error("Upload Error:", error.response?.data || error.message);
+  }
+};
 
   return (
     <div className="container-fluid vh-100 p-0">
       <div className="row g-0">
-
         {/* ✅ LEFT SIDEBAR */}
         <div className="col-2 bg-dark text-white p-3" style={{ minHeight: "100vh" }}>
-          {/* Only show Files menu */}
           <h5
             className="text-center"
             style={{ cursor: "pointer" }}
@@ -86,11 +125,18 @@ const Dashboard = () => {
                 Selected: <strong>{selectedItem}</strong>
               </h5>
 
-              <div className="card p-3 mt-3 shadow-sm" style={{ maxWidth: "400px" }}>
+              <div
+                className="card p-3 mt-3 shadow-sm"
+                style={{ maxWidth: "400px" }}
+              >
                 <label className="form-label">Choose a file to upload</label>
-                <input type="file" className="form-control mb-3" onChange={handleFileUpload} />
+                <input
+                  type="file"
+                  className="form-control mb-3"
+                  onChange={handleFileUpload}
+                />
 
-                <button className="btn btn-primary w-100" onClick={uploadToServer}>
+                <button className="btn btn-primary w-100" onClick={uploadToServer}  disabled={!userId || !file} >
                   Upload File
                 </button>
               </div>
