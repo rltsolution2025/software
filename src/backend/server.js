@@ -3,6 +3,7 @@ const cors = require('cors');
 const DB = require('./config/DB');
 const authRoutes = require('./routes/authRoute');
 const dashboardRoutes = require('./routes/dashboardRoute');
+const fileRoutes = require('./routes/fileRoutes');
 
 const app = express();
 DB();
@@ -15,9 +16,12 @@ app.use(cors({
 })); // Allow frontend requests
 app.use(express.json());
 
+app.use("/uploads", express.static("uploads"));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', dashboardRoutes);
+app.use("/api", fileRoutes);
 
 
 
