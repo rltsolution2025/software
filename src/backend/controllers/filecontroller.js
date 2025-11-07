@@ -26,7 +26,7 @@ exports.uploadFile = async (req, res) => {
 // ✅ Get Files of a User
 exports.getUserFiles = async (req, res) => {
   try {
-    const files = await File.find({ owner: req.params.userId }); // ✅ match schema field
+    const files = await File.find({ owner: req.params.userId }); 
     res.json({ success: true, files });
   } catch (err) {
     console.error("Get User Files Error:", err);
