@@ -54,22 +54,19 @@ const path = require("path");
 const fs = require("fs");
 const PurchaseOrder = require("../models/purchaseOrder");
 
-// Directory to store purchase orders
 const PO_DIR = path.join(__dirname, "../uploads/purchase_orders");
-
-// Ensure the directory exists
 if (!fs.existsSync(PO_DIR)) {
   fs.mkdirSync(PO_DIR, { recursive: true });
 }
 
-// ✅ Save uploaded PDF
 exports.savePurchaseOrder = async (req, res) => {
   try {
+    console.log("Uploaded file:", req.file); // ✅ Debug log
+
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    // Save to MongoDB
     const po = new PurchaseOrder({
       filename: req.file.filename,
       originalName: req.file.originalname,
@@ -80,31 +77,23 @@ exports.savePurchaseOrder = async (req, res) => {
     res.json({
       success: true,
       file: {
-        name: req.file.originalname,  // for frontend display
-        savedName: req.file.filename, // actual saved filename
+        name: req.file.originalname,
+        savedName: req.file.filename,
         url: `/uploads/purchase_orders/${req.file.filename}`,
       },
     });
   } catch (err) {
     console.error("Save Purchase Order Error:", err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ✅ List all saved PDFs
 exports.getAllPurchaseOrders = async (req, res) => {
   try {
     const files = await PurchaseOrder.find().sort({ createdAt: -1 });
-
-    // 🟢 Ensure each returned file includes a human-readable name
-    const formattedFiles = files.map((po) => ({
-      name: po.originalName || po.filename,
-      url: po.url,
-    }));
-
-    res.json({ success: true, files: formattedFiles });
+    res.json({ success: true, files });
   } catch (err) {
     console.error("Get All Purchase Orders Error:", err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: err.message });
   }
 };

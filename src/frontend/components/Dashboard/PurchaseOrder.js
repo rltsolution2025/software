@@ -8,15 +8,14 @@ const PurchaseOrder = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const poRef = useRef();
-
   const [savedOrders, setSavedOrders] = useState([]);
 
-  // Fetch all saved purchase orders
+  // Fetch saved POs
   const fetchSavedOrders = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/purchase-orders/list");
       if (res.data.success) {
-        setSavedOrders(res.data.files || []); // backend returns files
+        setSavedOrders(res.data.files || []);
       }
     } catch (err) {
       console.error("Error fetching saved orders:", err);
@@ -47,8 +46,11 @@ const PurchaseOrder = () => {
       pdf.save(fileName);
     } else if (mode === "save") {
       const pdfBlob = pdf.output("blob");
+      // ✅ Fix: convert Blob → File before sending to backend
+      const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
+
       const formData = new FormData();
-      formData.append("file", pdfBlob, fileName);
+      formData.append("file", pdfFile);
 
       try {
         const res = await axios.post(
@@ -59,7 +61,7 @@ const PurchaseOrder = () => {
 
         if (res.data.success) {
           alert("✅ Purchase order saved successfully!");
-          fetchSavedOrders(); // Refresh saved orders
+          fetchSavedOrders(); // Refresh list
         } else {
           alert("❌ Failed to save purchase order.");
         }
@@ -76,7 +78,6 @@ const PurchaseOrder = () => {
         ← Back
       </button>
 
-      {/* Buttons */}
       <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
         <button
           onClick={() => generatePDF("download")}
@@ -104,7 +105,7 @@ const PurchaseOrder = () => {
         </button>
       </div>
 
-      {/* Current Purchase Order */}
+      {/* PDF Content */}
       <div
         ref={poRef}
         style={{
@@ -114,61 +115,52 @@ const PurchaseOrder = () => {
           marginBottom: "40px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", justifyContent: "center" }}>
+        <div
+          style={{
+            backgroundColor: "#fff",
+            color: "#084381ff",
+            padding: "20px",
+            borderRadius: "10px",
+            marginBottom: "20px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px" }}>
+            <img
+              src="/assets/RLT_Logo.png"
+              alt="Company Logo"
+              style={{ width: "80px", height: "80px", objectFit: "contain" }}
+            />
+            <h2 style={{ margin: 0, fontSize: "40px" }}>{company.name}</h2>
+          </div>
+
           <div
-  style={{
-    backgroundColor: "fff", // blue color
-    color: "#084381ff",
-    padding: "20px",
-    borderRadius: "10px",
-    marginBottom: "20px",
-    frontweight: "bold",
-  }}
->
-  {/* First row: Logo + Company Name */}
-  <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-    <img
-      src="/assets/RLT_Logo.png"
-      alt="Company Logo"
-      style={{ width: "80px", height: "80px", objectFit: "contain" }}
-    />
-    <h2 style={{ margin: 0 , textAlign: "center", justifyContent: "center", fontSize: "50px" }}>{company.name}</h2>
-  </div>
-
-  {/* Second row: Address, Phone, GST, CIN */}
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      marginTop: "10px",
-      flexWrap: "wrap",
-      gap: "20px",
-    }}
-  >
-    <p style={{ margin: 0 }}>{company.address}</p>
-    <p style={{ margin: 0 }}>
-      <strong>Telephone:</strong> {company.phone}
-    </p>
-    <p style={{ margin: 0 }}>
-      <strong>GST:</strong> {company.gst}
-    </p>
-    <p style={{ margin: 0 }}>
-      <strong>CIN:</strong> {company.cin}
-    </p>
-  </div>
-</div>
-
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: "10px",
+              flexWrap: "wrap",
+              gap: "20px",
+            }}
+          >
+            <p style={{ margin: 0 }}>{company.address}</p>
+            <p style={{ margin: 0 }}>
+              <strong>Telephone:</strong> {company.phone}
+            </p>
+            <p style={{ margin: 0 }}>
+              <strong>GST:</strong> {company.gst}
+            </p>
+            <p style={{ margin: 0 }}>
+              <strong>CIN:</strong> {company.cin}
+            </p>
+          </div>
         </div>
 
-        <hr style={{ margin: "30px 0" , border: "2px solid #084381ff"}} />
+        <hr style={{ margin: "30px 0", border: "2px solid #084381ff" }} />
 
         <h3>Purchase Order for: {item}</h3>
 
-        <table
-          border="1"
-          cellPadding="8"
-          style={{ width: "100%", borderCollapse: "collapse" }}
-        >
+        <table border="1" cellPadding="8" style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ backgroundColor: "#f3f3f3" }}>
               <th>Specification</th>
@@ -178,25 +170,19 @@ const PurchaseOrder = () => {
           <tbody>
             {specs.map((s, idx) => (
               <tr key={idx}>
-                <td>
-                  <strong>{s.name}</strong>
-                </td>
+                <td><strong>{s.name}</strong></td>
                 <td>{s.value}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {/* <p> <strong>Total Amount:</strong> ${Total Amount.toFixed(2)} </p>
-        <p> <strong>Tax (5%):</strong> ${(Total Amount * 0.05).toFixed(2)} </p>
-        <p> <strong>Grand Total:</strong> ${(Total Amount * 1.05).toFixed(2)} </p> */}
-
 
         <p style={{ marginTop: "40px", textAlign: "center" }}>
           <em>Thank you for choosing RL Technologies.</em>
         </p>
-        <hr style={{ margin: "30px 0" , border: "2px solid #084381ff"}} />
-        <div style={{ textAlign: "center", marginTop: "20px", color: "#084381ff", frontSize: "20px ", fontWeight: "bold" }}>
-            <p>Chennai * Madurai * Coimbatore * Bengaluru</p>
+        <hr style={{ margin: "30px 0", border: "2px solid #084381ff" }} />
+        <div style={{ textAlign: "center", marginTop: "20px", color: "#084381ff", fontWeight: "bold" }}>
+          <p>Chennai * Madurai * Coimbatore * Bengaluru</p>
         </div>
       </div>
 
@@ -204,20 +190,27 @@ const PurchaseOrder = () => {
       <div>
         <h3>Saved Purchase Orders</h3>
         {savedOrders.length === 0 && <p>No saved purchase orders yet.</p>}
-       {savedOrders.map((file, idx) => (
-  <div key={idx} style={{ marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
-   <span>{file.originalName || file.name}</span>
-    <a
-      href={`http://localhost:5000${file.url}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ color: "#007bff" }}
-    >
-      ⬇️ Download
-    </a>
-  </div>
-))}
-
+        {savedOrders.map((file, idx) => (
+          <div
+            key={idx}
+            style={{
+              marginBottom: "10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <span>{file.originalName || file.name}</span>
+            <a
+              href={`http://localhost:5000${file.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#007bff" }}
+            >
+              ⬇️ Download
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   );
