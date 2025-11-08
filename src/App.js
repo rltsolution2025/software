@@ -5,6 +5,7 @@ import PrivateRoute from './frontend/utils/PrivateRoutes.js'; // Corrected to si
 import LoginPage from './frontend/Pages/LoginPage.js';
 import DashboardPage from './frontend/Pages/DashboardPage.js';
 import { motion } from 'framer-motion'; // For animations
+import PurchaseOrder from './frontend/components/Dashboard/PurchaseOrder.js';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/purchase-order" element={<PurchaseOrder />} />
             <Route path="/" element={<LoginPage />} />
           </Routes>
         </Router>
