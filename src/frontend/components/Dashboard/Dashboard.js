@@ -10,7 +10,8 @@
 //   const [file, setFile] = useState(null);
 //   const [userId, setUserId] = useState("");
 //   const [uploadedFiles, setUploadedFiles] = useState([]);
-//   const [excelData, setExcelData] = useState([]); // ✅ Include sheet names
+//   const [excelData, setExcelData] = useState([]);
+//   const [purchaseData, setPurchaseData] = useState(null); // ✅ Added for purchase order
 
 //   useEffect(() => {
 //     const token = localStorage.getItem("token");
@@ -96,19 +97,29 @@
 //             <h5 style={{ cursor: "pointer" }} onClick={() => setSelectedItem("Files")}>
 //               📁 Files
 //             </h5>
+
 //             <h5
 //               className="mt-4"
 //               style={{ cursor: "pointer" }}
-//               onClick={() => excelData.length > 0 ? setSelectedItem("Compare") : alert("Upload a file first")}
+//               onClick={() =>
+//                 excelData.length > 0
+//                   ? setSelectedItem("Compare")
+//                   : alert("Upload a file first")
+//               }
 //             >
 //               🔍 Compare
 //             </h5>
+
 //             <h5
 //               className="mt-4"
 //               style={{ cursor: "pointer" }}
-//               onClick={() => excelData.length > 0 ? setSelectedItem("purchaseOrder") : alert("confirm a comparison first")}
+//               onClick={() =>
+//                 purchaseData
+//                   ? setSelectedItem("purchaseOrder")
+//                   : alert("Confirm a comparison first")
+//               }
 //             >
-//               Purchase Order
+//               🧾 Purchase Order
 //             </h5>
 //           </div>
 //         </div>
@@ -125,13 +136,19 @@
 
 //           {selectedItem === "Files" && (
 //             <div className="mt-4">
-//               <h5>Selected: <strong>Files</strong></h5>
+//               <h5>
+//                 Selected: <strong>Files</strong>
+//               </h5>
 
 //               {/* Upload Section */}
 //               <div className="card p-3 mt-3 shadow-sm" style={{ maxWidth: "400px" }}>
 //                 <label className="form-label">Choose a file to upload</label>
 //                 <input type="file" className="form-control mb-3" onChange={handleFileUpload} />
-//                 <button className="btn btn-primary w-100" onClick={uploadToServer} disabled={!userId || !file}>
+//                 <button
+//                   className="btn btn-primary w-100"
+//                   onClick={uploadToServer}
+//                   disabled={!userId || !file}
+//                 >
 //                   Upload File
 //                 </button>
 //               </div>
@@ -142,7 +159,10 @@
 //                   <h5>Your Uploaded Files</h5>
 //                   <ul className="list-group">
 //                     {uploadedFiles.map((f, index) => (
-//                       <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+//                       <li
+//                         key={index}
+//                         className="list-group-item d-flex justify-content-between align-items-center"
+//                       >
 //                         <span>{f.originalName || f.filename}</span>
 
 //                         <div>
@@ -174,7 +194,12 @@
 
 //           {/* Compare */}
 //           {selectedItem === "Compare" && excelData.length > 0 && (
-//             <Compare excelData={excelData} />
+//             <Compare excelData={excelData} setPurchaseData={setPurchaseData} />
+//           )}
+
+//           {/* ✅ Purchase Order Page */}
+//           {selectedItem === "purchaseOrder" && purchaseData && (
+//             <PurchaseOrder purchaseData={purchaseData} />
 //           )}
 //         </div>
 //       </div>
@@ -183,6 +208,7 @@
 // };
 
 // export default Dashboard;
+
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -197,7 +223,8 @@ const Dashboard = () => {
   const [userId, setUserId] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [excelData, setExcelData] = useState([]);
-  const [purchaseData, setPurchaseData] = useState(null); // ✅ Added for purchase order
+  const [purchaseData, setPurchaseData] = useState(null);
+  const [savedPOs, setSavedPOs] = useState([]); // ✅ store saved POs
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -225,8 +252,21 @@ const Dashboard = () => {
     }
   };
 
+  const fetchSavedPOs = async () => {
+    if (!userId) return;
+    try {
+      const res = await axios.get(`http://localhost:5000/api/purchase-orders/list`);
+      setSavedPOs(res.data.purchaseOrders || []);
+    } catch (err) {
+      console.error("Fetch Saved POs Error:", err.response?.data || err.message);
+    }
+  };
+
   useEffect(() => {
-    if (userId) fetchUserFiles();
+    if (userId) {
+      fetchUserFiles();
+      fetchSavedPOs(); // fetch saved POs
+    }
   }, [userId]);
 
   const handleFileUpload = (e) => setFile(e.target.files[0]);
@@ -252,7 +292,6 @@ const Dashboard = () => {
     }
   };
 
-  // ✅ Load Excel from server and include actual sheet names
   const loadExcelFromServer = async (fileName) => {
     try {
       const response = await axios.get(
@@ -268,7 +307,7 @@ const Dashboard = () => {
       });
 
       setExcelData(sheets);
-      setSelectedItem("Compare"); // Go to compare
+      setSelectedItem("Compare");
     } catch (err) {
       console.error("Excel load error:", err);
     }
@@ -300,9 +339,9 @@ const Dashboard = () => {
               className="mt-4"
               style={{ cursor: "pointer" }}
               onClick={() =>
-                purchaseData
+                purchaseData || savedPOs.length > 0
                   ? setSelectedItem("purchaseOrder")
-                  : alert("Confirm a comparison first")
+                  : alert("No purchase orders available")
               }
             >
               🧾 Purchase Order
@@ -326,7 +365,6 @@ const Dashboard = () => {
                 Selected: <strong>Files</strong>
               </h5>
 
-              {/* Upload Section */}
               <div className="card p-3 mt-3 shadow-sm" style={{ maxWidth: "400px" }}>
                 <label className="form-label">Choose a file to upload</label>
                 <input type="file" className="form-control mb-3" onChange={handleFileUpload} />
@@ -339,7 +377,6 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              {/* Display Uploaded Files */}
               {uploadedFiles.length > 0 ? (
                 <div className="mt-4">
                   <h5>Your Uploaded Files</h5>
@@ -378,14 +415,12 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Compare */}
           {selectedItem === "Compare" && excelData.length > 0 && (
             <Compare excelData={excelData} setPurchaseData={setPurchaseData} />
           )}
 
-          {/* ✅ Purchase Order Page */}
-          {selectedItem === "purchaseOrder" && purchaseData && (
-            <PurchaseOrder purchaseData={purchaseData} />
+          {selectedItem === "purchaseOrder" && (
+            <PurchaseOrder purchaseData={purchaseData} savedPOs={savedPOs} />
           )}
         </div>
       </div>
