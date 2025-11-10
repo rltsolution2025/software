@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import PurchaseOrder from "./PurchaseOrder";
 import Compare from "./Compare";
+import WelcomeDashboard from "./DashobaordHome";
 
 const Dashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -12,7 +13,7 @@ const Dashboard = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [excelData, setExcelData] = useState([]);
   const [purchaseData, setPurchaseData] = useState(null);
-  const [savedPOs, setSavedPOs] = useState([]); // ✅ store saved POs
+  const [savedPOs, setSavedPOs] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -23,40 +24,40 @@ const Dashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        const id = res.data?.user?.id || res.data?.user?._id || "";
+        const id = res.data?.user?.id || res.data?.user?._id;
         if (!id) return alert("User data missing. Please log in again.");
         setUserId(id);
       })
       .catch(() => alert("Failed to fetch user info. Please log in again."));
   }, []);
 
-  const fetchUserFiles = async () => {
-    if (!userId) return;
-    try {
-      const res = await axios.get(`http://localhost:5000/api/files/${userId}`);
-      setUploadedFiles(res.data.files || []);
-    } catch (err) {
-      console.error("Fetch Files Error:", err.response?.data || err.message);
-    }
-  };
-
-  const fetchSavedPOs = async () => {
-    if (!userId) return;
-    try {
-      const res = await axios.get(`http://localhost:5000/api/purchase-orders/list`);
-      setSavedPOs(res.data.purchaseOrders || []);
-    } catch (err) {
-      console.error("Fetch Saved POs Error:", err.response?.data || err.message);
-    }
-  };
-
+  // Fetch user's files and saved POs when userId is available
   useEffect(() => {
-    if (userId) {
-      fetchUserFiles();
-      fetchSavedPOs(); // fetch saved POs
-    }
+    if (!userId) return;
+
+    const fetchUserFiles = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/files/${userId}`);
+        setUploadedFiles(res.data.files || []);
+      } catch (err) {
+        console.error("Fetch Files Error:", err.response?.data || err.message);
+      }
+    };
+
+    const fetchSavedPOs = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/purchase-orders/list`);
+        setSavedPOs(res.data.purchaseOrders || []);
+      } catch (err) {
+        console.error("Fetch Saved POs Error:", err.response?.data || err.message);
+      }
+    };
+
+    fetchUserFiles();
+    fetchSavedPOs();
   }, [userId]);
 
+  // File upload handler
   const handleFileUpload = (e) => setFile(e.target.files[0]);
 
   const uploadToServer = async () => {
@@ -71,21 +72,24 @@ const Dashboard = () => {
       await axios.post("http://localhost:5000/api/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       alert("✅ File uploaded successfully!");
       setFile(null);
-      fetchUserFiles();
+
+      // Refresh uploaded files
+      const res = await axios.get(`http://localhost:5000/api/files/${userId}`);
+      setUploadedFiles(res.data.files || []);
     } catch (error) {
+      console.error(error);
       alert("❌ File upload failed");
     }
   };
 
+  // Load Excel file from server and parse
   const loadExcelFromServer = async (fileName) => {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/uploads/${fileName}`,
-        { responseType: "arraybuffer" }
-      );
+      const response = await axios.get(`http://localhost:5000/uploads/${fileName}`, {
+        responseType: "arraybuffer",
+      });
 
       const workbook = XLSX.read(response.data, { type: "array" });
       const sheets = workbook.SheetNames.map((name) => {
@@ -104,8 +108,28 @@ const Dashboard = () => {
   return (
     <div className="container-fluid vh-100 p-0">
       <div className="row g-0">
+
         {/* LEFT SIDEBAR */}
         <div className="col-2 bg-dark text-white p-3" style={{ minHeight: "100vh" }}>
+          {/* Company Logo + Name (Clickable) */}
+          <div
+            className="d-flex align-items-center mb-4"
+            style={{ cursor: "pointer" }}
+            onClick={() => setSelectedItem("Dashboard")}
+          >
+            <img
+              src="/assets/RLT_Logo.png"
+              alt="Company Logo"
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50px",
+                backgroundColor: "#fff",
+              }}
+            />
+            <h5 className="ms-2 mb-0">RLT Solutions</h5>
+          </div>
+
           <div className="text-center">
             <h5 style={{ cursor: "pointer" }} onClick={() => setSelectedItem("Files")}>
               📁 Files
@@ -115,9 +139,7 @@ const Dashboard = () => {
               className="mt-4"
               style={{ cursor: "pointer" }}
               onClick={() =>
-                excelData.length > 0
-                  ? setSelectedItem("Compare")
-                  : alert("Upload a file first")
+                excelData.length > 0 ? setSelectedItem("Compare") : alert("Upload a file first")
               }
             >
               🔍 Compare
@@ -126,26 +148,20 @@ const Dashboard = () => {
             <h5
               className="mt-4"
               style={{ cursor: "pointer" }}
-              onClick={() =>
-                purchaseData || savedPOs.length > 0
-                  ? setSelectedItem("PurchaseOrder")
-                  : alert("No purchase orders available")
-              }
+              onClick={() => setSelectedItem("PurchaseOrder")}
+
             >
               🧾 Purchase Order
             </h5>
           </div>
         </div>
 
-        {/* RIGHT SIDE CONTENT */}
+        {/* RIGHT CONTENT */}
         <div className="col-10 p-4 bg-light">
           <h3>Dashboard</h3>
 
-          {!selectedItem && (
-            <div className="alert alert-info mt-3">
-              👇 Click <strong>📁 Files</strong> or <strong>🔍 Compare</strong> from sidebar.
-            </div>
-          )}
+          {/* ✅ Modified to show dashboard when clicked on company logo/name */}
+          {(!selectedItem || selectedItem === "Dashboard") && <WelcomeDashboard />}
 
           {selectedItem === "Files" && (
             <div className="mt-4">
@@ -156,6 +172,7 @@ const Dashboard = () => {
               <div className="card p-3 mt-3 shadow-sm" style={{ maxWidth: "400px" }}>
                 <label className="form-label">Choose a file to upload</label>
                 <input type="file" className="form-control mb-3" onChange={handleFileUpload} />
+
                 <button
                   className="btn btn-primary w-100"
                   onClick={uploadToServer}
@@ -169,13 +186,9 @@ const Dashboard = () => {
                 <div className="mt-4">
                   <h5>Your Uploaded Files</h5>
                   <ul className="list-group">
-                    {uploadedFiles.map((f, index) => (
-                      <li
-                        key={index}
-                        className="list-group-item d-flex justify-content-between align-items-center"
-                      >
+                    {uploadedFiles.map((f, idx) => (
+                      <li key={idx} className="list-group-item d-flex justify-content-between align-items-center">
                         <span>{f.originalName || f.filename}</span>
-
                         <div>
                           <a
                             href={`http://localhost:5000/uploads/${f.filename}`}
@@ -186,10 +199,7 @@ const Dashboard = () => {
                             View
                           </a>
 
-                          <button
-                            className="btn btn-sm btn-success"
-                            onClick={() => loadExcelFromServer(f.filename)}
-                          >
+                          <button className="btn btn-sm btn-success" onClick={() => loadExcelFromServer(f.filename)}>
                             Compare
                           </button>
                         </div>
