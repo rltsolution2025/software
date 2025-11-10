@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import PurchaseOrder from "./PurchaseOrder";
 import Compare from "./Compare";
 import WelcomeDashboard from "./DashobaordHome";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -14,6 +15,7 @@ const Dashboard = () => {
   const [excelData, setExcelData] = useState([]);
   const [purchaseData, setPurchaseData] = useState(null);
   const [savedPOs, setSavedPOs] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -149,7 +151,6 @@ const Dashboard = () => {
               className="mt-4"
               style={{ cursor: "pointer" }}
               onClick={() => setSelectedItem("PurchaseOrder")}
-
             >
               🧾 Purchase Order
             </h5>
