@@ -20,7 +20,7 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
     }
-
+   console.log("✅ User authenticated:", user.username);
     // ✅ Generate JWT token
     const token = jwt.sign(
       {

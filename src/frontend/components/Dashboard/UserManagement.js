@@ -20,8 +20,10 @@ const UserManagement = () => {
   };
 
   useEffect(() => {
+  if (user && user.role === "admin") {
     fetchUsers();
-  }, []);
+  }
+}, [user]);
 
   // Add user
   const handleAddUser = async () => {
@@ -71,7 +73,7 @@ const UserManagement = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="form-control mb-2"
         />
-        <button onClick={handleAddUser} className="btn btn-success mb-3">
+        <button onClick={handleAddUser} className="btn btn-success mb-3"  disabled={!user || user.role !== "admin"}>
           Add User
         </button>
       </div>
