@@ -6,6 +6,7 @@ import PurchaseOrder from "./PurchaseOrder";
 import Compare from "./Compare";
 import WelcomeDashboard from "./DashobaordHome";
 import { useNavigate } from "react-router-dom";
+import Delivery from "../Delivery";
 
 const Dashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -76,17 +77,16 @@ const Dashboard = () => {
       });
       alert("✅ File uploaded successfully!");
       setFile(null);
-
       // Refresh uploaded files
       const res = await axios.get(`http://localhost:5000/api/files/${userId}`);
       setUploadedFiles(res.data.files || []);
+      console.log("Uploaded Files:", res.data.files || []);
     } catch (error) {
       console.error(error);
       alert("❌ File upload failed");
     }
   };
 
-  // Load Excel file from server and parse
   const loadExcelFromServer = async (fileName) => {
     try {
       const response = await axios.get(`http://localhost:5000/uploads/${fileName}`, {
@@ -146,7 +146,6 @@ const Dashboard = () => {
             >
               🔍 Compare
             </h5>
-
             <h5
               className="mt-4"
               style={{ cursor: "pointer" }}
@@ -154,14 +153,18 @@ const Dashboard = () => {
             >
               🧾 Purchase Order
             </h5>
+            <h5
+  className="mt-4"
+  style={{ cursor: "pointer" }}
+  onClick={() => setSelectedItem("Delivery")}
+>
+  🚚 Delivery
+</h5>
           </div>
         </div>
-
-        {/* RIGHT CONTENT */}
         <div className="col-10 p-4 bg-light">
-          <h3>Dashboard</h3>
 
-          {/* ✅ Modified to show dashboard when clicked on company logo/name */}
+          <h3>Dashboard</h3>
           {(!selectedItem || selectedItem === "Dashboard") && <WelcomeDashboard />}
 
           {selectedItem === "Files" && (
@@ -221,10 +224,16 @@ const Dashboard = () => {
           {selectedItem === "PurchaseOrder" && (
             <PurchaseOrder purchaseData={purchaseData} savedPOs={savedPOs} />
           )}
+
+          {selectedItem === "Delivery" && (
+        <div className="mt-4">
+          <h5>📦 Delivery Tracking</h5>
+          <Delivery />  
+        </div>
+      )}
         </div>
       </div>
     </div>
   );
 };
-
 export default Dashboard;

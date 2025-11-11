@@ -1,55 +1,3 @@
-// const path = require("path");
-// const fs = require("fs");
-// const PurchaseOrder = require("../models/purchaseOrder"); // <-- new schema
-
-// // Directory to store purchase orders
-// const PO_DIR = path.join(__dirname, "../uploads/purchase_orders");
-
-// // Ensure the directory exists
-// if (!fs.existsSync(PO_DIR)) {
-//   fs.mkdirSync(PO_DIR, { recursive: true });
-// }
-
-// // Save uploaded PDF
-// exports.savePurchaseOrder = async (req, res) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).json({ success: false, message: "No file uploaded" });
-//     }
-
-//     // Save to MongoDB
-//     const po = new PurchaseOrder({
-//       filename: req.file.filename,
-//       originalName: req.file.originalname,
-//       url: `/uploads/purchase_orders/${req.file.filename}`,
-//     });
-//     await po.save();
-
-//     res.json({
-//       success: true,
-//     //   file: po, // Return saved record
-//      file: {
-//       name: req.file.originalname, // <-- use original name for display
-//       savedName: req.file.filename, // <-- actual saved filename on server
-//       url: `/uploads/purchase_orders/${req.file.filename}`,
-//     },
-//     });
-//   } catch (err) {
-//     console.error("Save Purchase Order Error:", err);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// };
-
-// // List all saved PDFs
-// exports.getAllPurchaseOrders = async (req, res) => {
-//   try {
-//     const files = await PurchaseOrder.find().sort({ createdAt: -1 });
-//     res.json({ success: true, files });
-//   } catch (err) {
-//     console.error("Get All Purchase Orders Error:", err);
-//     res.status(500).json({ success: false, message: "Internal server error" });
-//   }
-// };  
 const path = require("path");
 const fs = require("fs");
 const PurchaseOrder = require("../models/purchaseOrder");
@@ -61,17 +9,23 @@ if (!fs.existsSync(PO_DIR)) {
 
 exports.savePurchaseOrder = async (req, res) => {
   try {
-    console.log("Uploaded file:", req.file); // ✅ Debug log
-
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
+
+    // Extract additional fields from request body
+    const { deliveryPeriod, totalAmount, make } = req.body;
 
     const po = new PurchaseOrder({
       filename: req.file.filename,
       originalName: req.file.originalname,
       url: `/uploads/purchase_orders/${req.file.filename}`,
+      deliveryPeriod: deliveryPeriod || "12 weeks",
+      totalAmount: totalAmount || 0,
+      make: make || "",
+      status: "Pending",   // default
     });
+
     await po.save();
 
     res.json({
@@ -80,8 +34,12 @@ exports.savePurchaseOrder = async (req, res) => {
         name: req.file.originalname,
         savedName: req.file.filename,
         url: `/uploads/purchase_orders/${req.file.filename}`,
+        deliveryPeriod: po.deliveryPeriod,
+        totalAmount: po.totalAmount,
+        make: po.make,
       },
     });
+    console.log("Saved PO Details:", { deliveryPeriod, totalAmount, make });
   } catch (err) {
     console.error("Save Purchase Order Error:", err);
     res.status(500).json({ success: false, message: err.message });
@@ -94,6 +52,47 @@ exports.getAllPurchaseOrders = async (req, res) => {
     res.json({ success: true, files });
   } catch (err) {
     console.error("Get All Purchase Orders Error:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+exports.updatePurchaseOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const po = await PurchaseOrder.findById(id);
+
+    if (!po) {
+      return res.status(404).json({ success: false, message: "Purchase Order not found" });
+    }
+
+    // Update status to Sent
+    po.status = "Sent";
+    po.sentDate = new Date();
+
+    // Calculate delivery date based on deliveryPeriod
+    const match = po.deliveryPeriod.match(/(\d+)\s*(week|weeks|day|days)/i);
+    let deliveryDays = 14; // default 2 weeks
+
+    if (match) {
+      const number = parseInt(match[1]);
+      const unit = match[2].toLowerCase();
+      deliveryDays = unit.includes("week") ? number * 7 : number;
+    }
+
+    const expectedDate = new Date();
+    expectedDate.setDate(expectedDate.getDate() + deliveryDays);
+    po.deliveryDate = expectedDate;
+
+    await po.save();
+
+    res.json({
+      success: true,
+      message: "Status updated to Sent",
+      po,
+    });
+  } catch (err) {
+    console.error("Update PO Status Error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

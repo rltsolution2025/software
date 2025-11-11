@@ -3,6 +3,7 @@
 // import jsPDF from "jspdf";
 // import html2canvas from "html2canvas";
 // import axios from "axios";
+// import SavedPurchaseOrders from './SavedPurchaseOrders'; // adjust path if needed
 
 // const PurchaseOrder = () => {
 //   const { state } = useLocation();
@@ -10,7 +11,7 @@
 //   const poRef = useRef();
 //   const [savedOrders, setSavedOrders] = useState([]);
 
-//   // Fetch saved POs
+//   // ✅ Fetch saved POs
 //   const fetchSavedOrders = async () => {
 //     try {
 //       const res = await axios.get("http://localhost:5000/api/purchase-orders/list");
@@ -30,6 +31,7 @@
 
 //   const { company, item, specs } = state;
 
+//   // ✅ PDF generation logic
 //   const generatePDF = async (mode) => {
 //     const element = poRef.current;
 //     const canvas = await html2canvas(element, { scale: 2 });
@@ -46,7 +48,6 @@
 //       pdf.save(fileName);
 //     } else if (mode === "save") {
 //       const pdfBlob = pdf.output("blob");
-//       // ✅ Fix: convert Blob → File before sending to backend
 //       const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
 
 //       const formData = new FormData();
@@ -61,7 +62,7 @@
 
 //         if (res.data.success) {
 //           alert("✅ Purchase order saved successfully!");
-//           fetchSavedOrders(); // Refresh list
+//           fetchSavedOrders(); // Refresh saved list
 //         } else {
 //           alert("❌ Failed to save purchase order.");
 //         }
@@ -78,6 +79,7 @@
 //         ← Back
 //       </button>
 
+//       {/* ✅ Action Buttons */}
 //       <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
 //         <button
 //           onClick={() => generatePDF("download")}
@@ -105,7 +107,7 @@
 //         </button>
 //       </div>
 
-//       {/* PDF Content */}
+//       {/* ✅ Purchase Order Content */}
 //       <div
 //         ref={poRef}
 //         style={{
@@ -125,7 +127,14 @@
 //             textAlign: "center",
 //           }}
 //         >
-//           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px" }}>
+//           <div
+//             style={{
+//               display: "flex",
+//               alignItems: "center",
+//               justifyContent: "center",
+//               gap: "20px",
+//             }}
+//           >
 //             <img
 //               src="/assets/RLT_Logo.png"
 //               alt="Company Logo"
@@ -186,32 +195,8 @@
 //         </div>
 //       </div>
 
-//       {/* Saved Purchase Orders */}
-//       <div>
-//         <h3>Saved Purchase Orders</h3>
-//         {savedOrders.length === 0 && <p>No saved purchase orders yet.</p>}
-//         {savedOrders.map((file, idx) => (
-//           <div
-//             key={idx}
-//             style={{
-//               marginBottom: "10px",
-//               display: "flex",
-//               alignItems: "center",
-//               gap: "10px",
-//             }}
-//           >
-//             <span>{file.originalName || file.name}</span>
-//             <a
-//               href={`http://localhost:5000${file.url}`}
-//               target="_blank"
-//               rel="noopener noreferrer"
-//               style={{ color: "#007bff" }}
-//             >
-//               ⬇️ Download
-//             </a>
-//           </div>
-//         ))}
-//       </div>
+//       {/* ✅ Use the separate SavedPurchaseOrders component */}
+//       <SavedPurchaseOrders savedOrders={savedOrders} />
 //     </div>
 //   );
 // };
@@ -231,6 +216,7 @@ const PurchaseOrder = () => {
   const navigate = useNavigate();
   const poRef = useRef();
   const [savedOrders, setSavedOrders] = useState([]);
+  const [saving, setSaving] = useState(false); // disable save button during request
 
   // ✅ Fetch saved POs
   const fetchSavedOrders = async () => {
@@ -252,6 +238,11 @@ const PurchaseOrder = () => {
 
   const { company, item, specs } = state;
 
+  // ✅ Extract deliveryPeriod, totalAmount, make from specs
+  const deliveryPeriod = specs.find(s => s.name.toLowerCase() === "delivery")?.value || "2 weeks";
+  const totalAmount = specs.find(s => s.name.toLowerCase() === "total amount")?.value || 0;
+  const make = specs.find(s => s.name.toLowerCase() === "make")?.value || "";
+
   // ✅ PDF generation logic
   const generatePDF = async (mode) => {
     const element = poRef.current;
@@ -268,11 +259,16 @@ const PurchaseOrder = () => {
     if (mode === "download") {
       pdf.save(fileName);
     } else if (mode === "save") {
+      setSaving(true);
+
       const pdfBlob = pdf.output("blob");
       const pdfFile = new File([pdfBlob], fileName, { type: "application/pdf" });
 
       const formData = new FormData();
       formData.append("file", pdfFile);
+      formData.append("deliveryPeriod", deliveryPeriod);
+      formData.append("totalAmount", totalAmount);
+      formData.append("make", make);
 
       try {
         const res = await axios.post(
@@ -283,6 +279,7 @@ const PurchaseOrder = () => {
 
         if (res.data.success) {
           alert("✅ Purchase order saved successfully!");
+          console.log("Saved PO Details:", { deliveryPeriod, totalAmount, make });
           fetchSavedOrders(); // Refresh saved list
         } else {
           alert("❌ Failed to save purchase order.");
@@ -290,6 +287,8 @@ const PurchaseOrder = () => {
       } catch (err) {
         console.error("Save Error:", err);
         alert("❌ Error saving to server.");
+      } finally {
+        setSaving(false);
       }
     }
   };
@@ -316,6 +315,7 @@ const PurchaseOrder = () => {
         </button>
         <button
           onClick={() => generatePDF("save")}
+          disabled={saving}
           style={{
             backgroundColor: "#007bff",
             color: "#fff",
@@ -324,7 +324,7 @@ const PurchaseOrder = () => {
             borderRadius: "5px",
           }}
         >
-          💾 Save to Server
+          💾 {saving ? "Saving..." : "Save to Server"}
         </button>
       </div>
 

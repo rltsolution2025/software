@@ -5,9 +5,11 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+
 const {
   savePurchaseOrder,
   getAllPurchaseOrders,
+  updatePurchaseOrderStatus,
 } = require("../controllers/purchaseOrderController");
 
 // Ensure upload directory exists
@@ -33,5 +35,8 @@ const upload = multer({ storage });
 // Routes
 router.post("/save", upload.single("file"), savePurchaseOrder);
 router.get("/list", getAllPurchaseOrders);
+router.put("/mark-sent/:id", updatePurchaseOrderStatus);
+
+
 
 module.exports = router;
