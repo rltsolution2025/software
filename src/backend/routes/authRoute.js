@@ -27,6 +27,37 @@ router.get("/create-admin", async (req, res) => {
   }
 });
 
+// router.post("/register", async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
+
+//     // Check if username already exists
+//     const existingUser = await User.findOne({ username });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "Username already exists" });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create new user
+//     const newUser = await User.create({
+//       username,
+//       password: hashedPassword,
+//       role: "user", // default role
+//     });
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       user: { id: newUser._id, username: newUser.username, role: newUser.role },
+//     });
+//   } catch (error) {
+//     console.error("Registration error:", error);
+//     res.status(500).json({ message: "Error registering user" });
+//   }
+// });
+
+
 router.post("/login", login);
 router.post("/logout", logout);
 

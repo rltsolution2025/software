@@ -6,7 +6,7 @@ import LoginPage from './frontend/Pages/LoginPage.js';
 import DashboardPage from './frontend/Pages/DashboardPage.js';
 import { motion } from 'framer-motion'; // For animations
 import PurchaseOrder from './frontend/components/Dashboard/PurchaseOrder.js';
-
+import UserManagement from './frontend/components/Dashboard/UserManagement.js';
 
 function App() {
   return (
@@ -24,6 +24,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <DashboardPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/user-management"
+              element={
+                <PrivateRoute>
+                  <UserManagement />
                 </PrivateRoute>
               }
             />

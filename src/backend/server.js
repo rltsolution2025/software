@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoute');
 const dashboardRoutes = require('./routes/dashboardRoute');
 const fileRoutes = require('./routes/fileRoutes');
 const purchaseOrderRoutes = require('./routes/purchaseOrderRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 DB();
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', dashboardRoutes);
 app.use("/api", fileRoutes);
 app.use("/api/purchase-orders", purchaseOrderRoutes);
+app.use("/api/users", userRoutes);
 
 
 
