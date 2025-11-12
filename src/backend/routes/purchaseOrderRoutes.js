@@ -10,7 +10,7 @@ const {
   savePurchaseOrder,
   getAllPurchaseOrders,
   updatePurchaseOrderStatus,
-  markPurchaseOrderReceived
+  updatePurchaseOrderDelivered
 } = require("../controllers/purchaseOrderController");
 
 // Ensure upload directory exists
@@ -37,7 +37,7 @@ const upload = multer({ storage });
 router.post("/save", upload.single("file"), savePurchaseOrder);
 router.get("/list", getAllPurchaseOrders);
 router.put("/mark-sent/:id", updatePurchaseOrderStatus);
-router.put("/mark-received/:id", markPurchaseOrderReceived);
+router.put("/mark-delivered/:id", updatePurchaseOrderDelivered);
 
 
 
