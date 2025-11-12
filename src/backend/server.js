@@ -6,6 +6,8 @@ const dashboardRoutes = require('./routes/dashboardRoute');
 const fileRoutes = require('./routes/fileRoutes');
 const purchaseOrderRoutes = require('./routes/purchaseOrderRoutes');
 const userRoutes = require('./routes/userRoutes');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const app = express();
 DB();

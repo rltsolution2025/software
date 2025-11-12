@@ -20,7 +20,7 @@ const Delivery = () => {
     try {
       await axios.put(`http://localhost:5000/api/purchase-orders/mark-sent/${id}`,);
       fetchOrders();
-      
+      console.log("Order marked as sent:", id);
     } catch (err) {
       console.error("Mark as sent failed:", err);
       alert("❌ Failed to update order.");
