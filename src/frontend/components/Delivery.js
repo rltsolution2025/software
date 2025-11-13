@@ -54,7 +54,7 @@ const Delivery = () => {
         <div className="alert alert-warning">No purchase orders available.</div>
       ) : (
         <table className="table table-bordered mt-3 text-center align-middle shadow-sm">
-          <thead className="table-dark">
+          <thead className="table-primary">
             <tr>
               <th>S.NO</th>
               <th>File Name</th>
