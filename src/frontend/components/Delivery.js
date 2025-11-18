@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Delivery = () => {
   const [orders, setOrders] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // 🔹 pagination state
 
   // 🔹 Fetch POs from backend
   const fetchOrders = async () => {
@@ -18,7 +20,7 @@ const Delivery = () => {
   // 🔹 Mark as Sent
   const markAsSent = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/purchase-orders/mark-sent/${id}`,);
+      await axios.put(`http://localhost:5000/api/purchase-orders/mark-sent/${id}`);
       fetchOrders();
       console.log("Order marked as sent:", id);
     } catch (err) {
@@ -46,6 +48,13 @@ const Delivery = () => {
     fetchOrders();
   }, []);
 
+  // 🔹 Pagination logic
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="container mt-4">
       <p className="text-muted">Track sent dates and expected delivery timelines for POs.</p>
@@ -53,27 +62,24 @@ const Delivery = () => {
       {orders.length === 0 ? (
         <div className="alert alert-warning">No purchase orders available.</div>
       ) : (
-        <table className="table table-bordered mt-3 text-center align-middle shadow-sm">
-          <thead className="table-primary">
-            <tr>
-              <th>S.NO</th>
-              <th>File Name</th>
-              <th>Delivery Period</th>
-              {/* <th>Sender Email</th>
-              <th>Sender Phone</th> */}
-              <th>Sent Date</th>
-              <th>Expected Delivery</th>
-              <th>Delivery Date</th>
-              <th>Status / Action</th>
-            </tr>
-          </thead>
+        <>
+          <table className="table table-bordered mt-3 text-center align-middle shadow-sm">
+            <thead className="table-primary">
+              <tr>
+                <th>S.NO</th>
+                <th>File Name</th>
+                <th>Delivery Period</th>
+                <th>Sent Date</th>
+                <th>Expected Delivery</th>
+                <th>Delivery Date</th>
+                <th>Status / Action</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            { orders.map((po, index) => {
-              return (
+            <tbody>
+              {currentOrders.map((po, index) => (
                 <tr key={po._id}>
-                  <td>{index + 1}</td>
-                  {/* 📥 Downloadable File */}
+                  <td>{indexOfFirstItem + index + 1}</td>
                   <td>
                     {po.url ? (
                       <a
@@ -88,30 +94,27 @@ const Delivery = () => {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: "6px"
+                          gap: "6px",
                         }}
                       >
                         <span>{po.originalName || po.name}</span>
-                        <span role="img" aria-label="download">📥</span>
+                        <span role="img" aria-label="download">
+                          📥
+                        </span>
                       </a>
                     ) : (
                       po.originalName || po.name
                     )}
                   </td>
-
                   <td>{po.deliveryPeriod || "2 weeks"}</td>
-                  {/* <td>{po.senderEmail || "—"}</td>
-                  <td>{po.senderPhone || "—"}</td> */}
                   <td>{po.sentDate ? new Date(po.sentDate).toLocaleString("en-GB") : "—"}</td>
                   <td>{po.deliveryDate ? new Date(po.deliveryDate).toLocaleDateString("en-GB") : "—"}</td>
                   <td>
-                    {/* Show actual delivery date if Delivered */}
                     {po.status === "Delivered"
                       ? new Date(po.receivedDate).toLocaleDateString("en-GB")
                       : "—"}
                   </td>
 
-                  {/* Action Buttons */}
                   <td>
                     {po.status === "Pending" && (
                       <button
@@ -121,7 +124,6 @@ const Delivery = () => {
                         Mark Sent
                       </button>
                     )}
-
                     {po.status === "Sent" && (
                       <button
                         className="btn btn-sm btn-outline-success"
@@ -130,21 +132,47 @@ const Delivery = () => {
                         Mark Delivered
                       </button>
                     )}
-
                     {po.status === "Delivered" && (
                       <span className="badge bg-success">✅ Delivered</span>
                     )}
                   </td>
                 </tr>
-              );
-            }) }
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+
+          {/* 🔹 Pagination Controls */}
+          <div className="mt-3 d-flex justify-content-center align-items-center gap-2">
+            <button
+              className="btn btn-sm btn-secondary"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+
+            {[...Array(totalPages)].map((_, idx) => (
+              <button
+                key={idx}
+                className={`btn btn-sm ${currentPage === idx + 1 ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => setCurrentPage(idx + 1)}
+              >
+                {idx + 1}
+              </button>
+            ))}
+
+            <button
+              className="btn btn-sm btn-secondary"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
 };
 
 export default Delivery;
-
-
