@@ -14,6 +14,10 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid username or role" });
     }
 
+    if (user.blocked) {
+      return res.status(403).json({ message: "Your account is blocked. Contact admin." });
+    }
+
     // ✅ Compare hashed password
     const isMatch = await bcrypt.compare(password, user.password);
 
