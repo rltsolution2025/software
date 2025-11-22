@@ -1,49 +1,46 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
-// Get all users (admin only)
-exports.getUsers = async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ message: "Forbidden" });
-
-  const users = await User.find({ role: "user" }).select("-password");
-  res.json(users);
-};
-
-// Add new user (admin only)
+// PUBLIC create user (no admin, no token)
 exports.addUser = async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ message: "Forbidden" });
+  try {
+    const { username, password } = req.body;
 
-  const { username, password } = req.body;
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username and password are required" });
+    }
 
-  const existingUser = await User.findOne({ username });
-  if (existingUser) return res.status(400).json({ message: "Username already exists" });
+    // Check if user already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = new User({ username, password: hashedPassword, role: "user" });
-  await newUser.save();
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  res.status(201).json({ message: "User added successfully" });
-};
+    // Create user
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      role: "user",     // default role
+      blocked: false,
+    });
 
-// Block/unblock user
-exports.blockUser = async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ message: "Forbidden" });
+    await newUser.save();
 
-  const user = await User.findById(req.params.id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.blocked = !user.blocked;
-  await user.save();
-
-  res.json({ message: `User ${user.blocked ? "blocked" : "unblocked"}` });
-};
-
-// Delete user
-exports.deleteUser = async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ message: "Forbidden" });
-
-  const user = await User.findByIdAndDelete(req.params.id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  res.json({ message: "User deleted successfully" });
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        role: newUser.role,
+        blocked: newUser.blocked,
+      },
+    });
+  } catch (err) {
+    console.error("Error creating user:", err);
+    res.status(500).json({ message: "Server error while creating user" });
+  }
 };

@@ -69,11 +69,44 @@ router.get("/create-admin", async (req, res) => {
 // ----------------------
 // CREATE NORMAL USER
 // ----------------------
+// router.post("/create-user", async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
+
+//     // Check if username exists
+//     const existingUser = await User.findOne({ username });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create user
+//     await User.create({
+//       username,
+//       password: hashedPassword,
+//       role: "user",
+//     });
+
+//     res.status(201).json({ message: "✅ User Created Successfully" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Error creating user", error });
+//   }
+// });
+
+// Login
+
 router.post("/create-user", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Check if username exists
+    // Validate
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username and password required" });
+    }
+
+    // Check if user already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -83,19 +116,23 @@ router.post("/create-user", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    await User.create({
+    const newUser = new User({
       username,
       password: hashedPassword,
-      role: "user",
+      role: "user",     // default role
+      blocked: false,
     });
 
-    res.status(201).json({ message: "✅ User Created Successfully" });
+    await newUser.save();
+
+    res.json({ message: "User created successfully", user: newUser });
   } catch (error) {
-    res.status(500).json({ message: "Error creating user", error });
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Error creating user" });
   }
 });
 
-// Login
+
 router.post("/login", login);
 
 // Logout

@@ -69,48 +69,6 @@ const Dashboard = () => {
     fetchSavedPOs();
   }, [userId]);
 
-  // Fetch all users (admin only)
-  useEffect(() => {
-    if (user?.role === "admin") fetchUsers();
-  }, [user]);
-
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch users");
-    }
-  };
-
-  const handleAddUser = async () => {
-    if (!newUsername || !newPassword) return alert("Enter username & password");
-
-    try {
-      await axios.post("http://localhost:5000/api/users", {
-        username: newUsername,
-        password: newPassword,
-      });
-      setNewUsername("");
-      setNewPassword("");
-      fetchUsers();
-    } catch (err) {
-      alert(err.response?.data?.message || "Error adding user");
-    }
-  };
-
-  const toggleBlock = async (id) => {
-    await axios.patch(`http://localhost:5000/api/users/block/${id}`);
-    fetchUsers();
-  };
-
-  const deleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-    await axios.delete(`http://localhost:5000/api/users/${id}`);
-    fetchUsers();
-  };
-
   // File upload handler
   const handleFileUpload = (e) => setFile(e.target.files[0]);
 
@@ -377,63 +335,7 @@ const Dashboard = () => {
 
           {selectedItem === "Notifications" && <Notifications />}
 
-          {selectedItem === "UserManagement" && (
-            <div className="mt-4">
-              <h5>👥 User Management</h5>
-              <div className="card p-3 mt-3 shadow-sm" style={{ maxWidth: "400px" }}>
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  className="form-control mb-2"
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="form-control mb-2"
-                />
-                <button className="btn btn-success w-100" onClick={handleAddUser}>
-                  Add User
-                </button>
-              </div>
-
-              {users.length > 0 ? (
-                <div className="mt-4">
-                  <h5>Existing Users</h5>
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Username</th>
-                        <th>Blocked</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((u) => (
-                        <tr key={u._id}>
-                          <td>{u.username}</td>
-                          <td>{u.blocked ? "Yes" : "No"}</td>
-                          <td>
-                            <button className="btn btn-warning me-2" onClick={() => toggleBlock(u._id)}>
-                              {u.blocked ? "Unblock" : "Block"}
-                            </button>
-                            <button className="btn btn-danger" onClick={() => deleteUser(u._id)}>
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-muted mt-3">No users found.</p>
-              )}
-            </div>
-          )}
+          {selectedItem === "UserManagement" && <UserManagement />}
         </div>
       </div>
     </div>
