@@ -5,6 +5,7 @@ const { getUsers, addUser, blockUser, deleteUser } = require("../controllers/use
 
 
 router.post("/", addUser);
+router.get("/",getUsers);
 
 
 module.exports = router;

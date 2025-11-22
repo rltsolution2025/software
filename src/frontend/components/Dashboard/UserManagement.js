@@ -30,6 +30,23 @@ const UserManagement = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try{
+        const res = await api.get("http://localhost:5000/api/users", {
+          // headers: { Authorization: `Bearer ${user.token}` },
+        });
+        setUsers(res.data || []);
+      }
+      catch(err){
+        console.error("Error fetching users:", err);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+
   return (
     <div className="container mt-5">
       <h2>User Management</h2>
@@ -55,6 +72,28 @@ const UserManagement = () => {
         >
           Add User
         </button>
+      <div>
+        <h4>Existing Users</h4>
+        <table className="table table-bordered">
+          <thead> 
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Blocked</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user._id}>
+                <td>{user.username}</td>
+                <td>{user.role}</td>
+                <td>{user.blocked ? "Yes" : "No"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       </div>
     </div>
   );

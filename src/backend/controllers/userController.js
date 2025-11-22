@@ -44,3 +44,15 @@ exports.addUser = async (req, res) => {
     res.status(500).json({ message: "Server error while creating user" });
   }
 };
+
+// Get all users
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "-password"); // Exclude passwords
+    res.json({ users });
+  }
+  catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Server error while fetching users" });
+  }
+};
