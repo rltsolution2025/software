@@ -56,3 +56,33 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ message: "Server error while fetching users" });
   }
 };
+
+exports.blockUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.blocked = !user.blocked;
+    await user.save();
+    res.json({ message: `User ${user.blocked ? "blocked" : "unblocked"} successfully` });
+  } catch (err) {
+    console.error("Error blocking/unblocking user:", err);
+    res.status(500).json({ message: "Server error while blocking/unblocking user" });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ message: "Server error while deleting user" });
+  }
+};  

@@ -1,56 +1,83 @@
 import React, { useEffect, useState, useContext } from "react";
 import api from "../../services/api";
-import { AuthContext } from "../../contexts/AuthContext";
 
 const UserManagement = () => {
-  const { user } = useContext(AuthContext); // user object with token
   const [users, setUsers] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  // -----------------------------
+  // Add User
+  // -----------------------------
   const handleAddUser = async () => {
     if (!username || !password) {
       alert("Please enter username and password");
       return;
     }
+
     try {
-      await api.post( 
-        "http://localhost:5000/api/users",
-        { username, password },
-        // { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
+      await api.post("http://localhost:5000/api/users", { username, password });
 
       setUsername("");
       setPassword("");
-      // fetchUsers();
+      fetchUsers();
       alert("User added successfully");
     } catch (err) {
-      console.error(err);
       alert(err.response?.data?.message || "Error adding user");
     }
   };
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try{
-        const res = await api.get("http://localhost:5000/api/users", {
-          // headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setUsers(res.data || []);
-      }
-      catch(err){
-        console.error("Error fetching users:", err);
-      }
-    };
+  // -----------------------------
+  // Fetch Users
+  // -----------------------------
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("http://localhost:5000/api/users");
+      setUsers(res.data.users || []);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, []);
 
+  // -----------------------------
+  // Delete User
+  // -----------------------------
+  const deleteUser = async (userId) => {
+    if (!window.confirm("Are you sure?")) return;
+
+    try {
+      await api.delete(`http://localhost:5000/api/users/${userId}`);
+      setUsers(users.filter((u) => u._id !== userId));
+    } catch (err) {
+      console.error("Error deleting user:", err);
+    }
+  };
+
+  // -----------------------------
+  // Block / Unblock User
+  // -----------------------------
+  const blockUser = async (userId) => {
+    try {
+      await api.put(`http://localhost:5000/api/users/block/${userId}`);
+      setUsers(
+        users.map((u) =>
+          u._id === userId ? { ...u, blocked: !u.blocked } : u
+        )
+      );
+    } catch (err) {
+      console.error("Error blocking/unblocking user:", err);
+    }
+  };
 
   return (
     <div className="container mt-5">
       <h2>User Management</h2>
 
+      {/* Add User */}
       <div className="mb-3">
         <input
           type="text"
@@ -59,6 +86,7 @@ const UserManagement = () => {
           onChange={(e) => setUsername(e.target.value)}
           className="form-control mb-2"
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -66,34 +94,53 @@ const UserManagement = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="form-control mb-2"
         />
-        <button
-          onClick={handleAddUser}
-          className="btn btn-success mb-3"
-        >
+
+        <button onClick={handleAddUser} className="btn btn-success mb-3">
           Add User
         </button>
+      </div>
+
+      {/* User List */}
       <div>
         <h4>Existing Users</h4>
+
         <table className="table table-bordered">
-          <thead> 
+          <thead>
             <tr>
               <th>Name</th>
               <th>Role</th>
               <th>Blocked</th>
+              <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {users.map((user) => (
               <tr key={user._id}>
                 <td>{user.username}</td>
                 <td>{user.role}</td>
                 <td>{user.blocked ? "Yes" : "No"}</td>
+
+                <td>
+                  <button
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={() => blockUser(user._id)}
+                  >
+                    {user.blocked ? "Unblock" : "Block"}
+                  </button>
+
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => deleteUser(user._id)}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
 
+        </table>
       </div>
     </div>
   );
