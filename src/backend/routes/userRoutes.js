@@ -4,6 +4,8 @@ const { authenticateToken } = require("../middlewares/authMiddleware");
 const { getUsers, addUser, deleteUser, blockUser } = require("../controllers/userController");
 
 
+router.use(authenticateToken);
+
 router.post("/", addUser);
 router.get("/",getUsers);
 router.delete("/:id", deleteUser);
