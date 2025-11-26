@@ -378,7 +378,9 @@ const Dashboard = () => {
     if (!token) return alert("⚠️ No token found. Please log in again.");
 
     api
-      .get("/api/dashboard")
+      .get("/api/dashboard", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
         const id = res.data?.user?.id || res.data?.user?._id;
         if (!id) return alert("User data missing. Please log in again.");
