@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useContext } from "react";
-import api from "../../services/api";
+import React, { useEffect, useState } from "react";
+import api from "../../services/api"; // ✅ use centralized API
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -16,7 +16,7 @@ const UserManagement = () => {
     }
 
     try {
-      await api.post("http://localhost:5000/api/users", { username, password });
+      await api.post("/api/users", { username, password }); // ✅ Updated
 
       setUsername("");
       setPassword("");
@@ -32,7 +32,7 @@ const UserManagement = () => {
   // -----------------------------
   const fetchUsers = async () => {
     try {
-      const res = await api.get("http://localhost:5000/api/users");
+      const res = await api.get("/api/users"); // ✅ Updated
       setUsers(res.data.users || []);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -50,7 +50,7 @@ const UserManagement = () => {
     if (!window.confirm("Are you sure?")) return;
 
     try {
-      await api.delete(`http://localhost:5000/api/users/${userId}`);
+      await api.delete(`/api/users/${userId}`); // ✅ Updated
       setUsers(users.filter((u) => u._id !== userId));
     } catch (err) {
       console.error("Error deleting user:", err);
@@ -62,7 +62,8 @@ const UserManagement = () => {
   // -----------------------------
   const blockUser = async (userId) => {
     try {
-      await api.put(`http://localhost:5000/api/users/block/${userId}`);
+      await api.put(`/api/users/block/${userId}`); // ✅ Updated
+
       setUsers(
         users.map((u) =>
           u._id === userId ? { ...u, blocked: !u.blocked } : u

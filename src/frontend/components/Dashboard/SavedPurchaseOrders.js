@@ -1,5 +1,4 @@
 import React from "react";
-
 const SavedPurchaseOrders = ({ savedOrders }) => {
   return (
     <div>
@@ -21,8 +20,9 @@ const SavedPurchaseOrders = ({ savedOrders }) => {
             }}
           >
             <span>{file.originalName || file.name}</span>
+
             <a
-              href={`http://localhost:5000${file.url}`}
+              href={`https://software-2-zth5.onrender.com${file.url}`}  // ✅ Updated
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: "#007bff", textDecoration: "none" }}

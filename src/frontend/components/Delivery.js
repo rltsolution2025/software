@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import api from "../services/api"; // ✅ use centralized API
 
 const Delivery = () => {
   const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); // 🔹 pagination state
-  const [searchTerm, setSearchTerm] = useState(""); // 🔹 search state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // 🔹 Fetch POs from backend
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/purchase-orders/list");
+      const res = await api.get("/api/purchase-orders/list"); // ✅ Updated
       if (res.data.success) setOrders(res.data.files || []);
     } catch (err) {
       console.error("Error fetching delivery orders:", err);
@@ -20,9 +20,8 @@ const Delivery = () => {
   // 🔹 Mark as Sent
   const markAsSent = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/purchase-orders/mark-sent/${id}`);
+      await api.put(`/api/purchase-orders/mark-sent/${id}`); // ✅ Updated
       fetchOrders();
-      console.log("Order marked as sent:", id);
     } catch (err) {
       console.error("Mark as sent failed:", err);
       alert("❌ Failed to update order.");
@@ -33,10 +32,10 @@ const Delivery = () => {
   const markAsDelivered = async (id) => {
     try {
       const deliveryDate = new Date();
-      await axios.put(`http://localhost:5000/api/purchase-orders/mark-delivered/${id}`, {
+      await api.put(`/api/purchase-orders/mark-delivered/${id}`, {
         status: "Delivered",
         deliveryDate,
-      });
+      }); // ✅ Updated
       fetchOrders();
     } catch (err) {
       console.error("Mark as delivered failed:", err);
@@ -48,10 +47,12 @@ const Delivery = () => {
     fetchOrders();
   }, []);
 
-  // 🔹 Filter orders based on search term safely
-const filteredOrders = orders.filter((po) =>
-  ((po.originalName || po.name) || "").toLowerCase().includes(searchTerm.toLowerCase())
-);
+  // 🔹 Filter orders safely
+  const filteredOrders = orders.filter((po) =>
+    ((po.originalName || po.name) || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   // 🔹 Pagination logic
   const itemsPerPage = 10;
@@ -62,7 +63,9 @@ const filteredOrders = orders.filter((po) =>
 
   return (
     <div className="container mt-4">
-      <p className="text-muted">Track sent dates and expected delivery timelines for POs.</p>
+      <p className="text-muted">
+        Track sent dates and expected delivery timelines for POs.
+      </p>
 
       {/* 🔹 Search Input */}
       {orders.length > 0 && (
@@ -73,7 +76,7 @@ const filteredOrders = orders.filter((po) =>
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setCurrentPage(1); // reset to first page when searching
+            setCurrentPage(1);
           }}
         />
       )}
@@ -99,10 +102,11 @@ const filteredOrders = orders.filter((po) =>
               {currentOrders.map((po, index) => (
                 <tr key={po._id}>
                   <td>{indexOfFirstItem + index + 1}</td>
+
                   <td>
                     {po.url ? (
                       <a
-                        href={`http://localhost:5000${po.url}`}
+                        href={`https://software-2-zth5.onrender.com${po.url}`} // ✅ Updated
                         target="_blank"
                         rel="noopener noreferrer"
                         download
@@ -117,17 +121,27 @@ const filteredOrders = orders.filter((po) =>
                         }}
                       >
                         <span>{po.originalName || po.name}</span>
-                        <span role="img" aria-label="download">
-                          📥
-                        </span>
+                        <span role="img" aria-label="download">📥</span>
                       </a>
                     ) : (
                       po.originalName || po.name
                     )}
                   </td>
+
                   <td>{po.deliveryPeriod || "2 weeks"}</td>
-                  <td>{po.sentDate ? new Date(po.sentDate).toLocaleString("en-GB") : "—"}</td>
-                  <td>{po.deliveryDate ? new Date(po.deliveryDate).toLocaleDateString("en-GB") : "—"}</td>
+
+                  <td>
+                    {po.sentDate
+                      ? new Date(po.sentDate).toLocaleString("en-GB")
+                      : "—"}
+                  </td>
+
+                  <td>
+                    {po.deliveryDate
+                      ? new Date(po.deliveryDate).toLocaleDateString("en-GB")
+                      : "—"}
+                  </td>
+
                   <td>
                     {po.status === "Delivered"
                       ? new Date(po.receivedDate).toLocaleDateString("en-GB")
@@ -143,6 +157,7 @@ const filteredOrders = orders.filter((po) =>
                         Mark Sent
                       </button>
                     )}
+
                     {po.status === "Sent" && (
                       <button
                         className="btn btn-sm btn-outline-success"
@@ -151,6 +166,7 @@ const filteredOrders = orders.filter((po) =>
                         Mark Delivered
                       </button>
                     )}
+
                     {po.status === "Delivered" && (
                       <span className="badge bg-success">✅ Delivered</span>
                     )}
@@ -173,7 +189,11 @@ const filteredOrders = orders.filter((po) =>
             {[...Array(totalPages)].map((_, idx) => (
               <button
                 key={idx}
-                className={`btn btn-sm ${currentPage === idx + 1 ? "btn-primary" : "btn-outline-primary"}`}
+                className={`btn btn-sm ${
+                  currentPage === idx + 1
+                    ? "btn-primary"
+                    : "btn-outline-primary"
+                }`}
                 onClick={() => setCurrentPage(idx + 1)}
               >
                 {idx + 1}
@@ -182,7 +202,9 @@ const filteredOrders = orders.filter((po) =>
 
             <button
               className="btn btn-sm btn-secondary"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
             >
               Next
