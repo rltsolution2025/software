@@ -5,7 +5,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import PurchaseOrder from "./PurchaseOrder";
 import Compare from "./Compare";
 import WelcomeDashboard from "./DashobaordHome";
-import { useNavigate } from "react-router-dom";
 import Delivery from "../Delivery";
 import { AuthContext } from "../../contexts/AuthContext";
 import Notifications from "./Notifications";
@@ -19,14 +18,12 @@ const Dashboard = () => {
   const [excelData, setExcelData] = useState([]);
   const [purchaseData, setPurchaseData] = useState(null);
   const [savedPOs, setSavedPOs] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [newUsername, setNewUsername] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [currentPage, setCurrentPage] = useState(1); // 🔹 pagination state
-  const [searchTerm, setSearchTerm] = useState(""); // 🔹 search state
+  const [currentPage, setCurrentPage] = useState(1);  
+  const [searchTerm, setSearchTerm] = useState(""); 
+
 
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -208,7 +205,7 @@ const Dashboard = () => {
             overflowY: "auto",
           }}
         >
-          {(!selectedItem || selectedItem === "Dashboard") && <WelcomeDashboard />}
+          {(!selectedItem || selectedItem === "Dashboard") && <WelcomeDashboard  setSelectedItem={setSelectedItem} />}
 
           {selectedItem === "Files" && (
             <div className="mt-4">
