@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import api from "../services/api"; // ✅ use centralized API
+import api from "../services/api"; 
 import User from "../../backend/models/User";
 
 const Delivery = () => {
