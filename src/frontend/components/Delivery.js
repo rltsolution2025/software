@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import api from "../services/api"; // ✅ use centralized API
+import User from "../../backend/models/User";
 
 const Delivery = () => {
   const [orders, setOrders] = useState([]);
@@ -20,7 +21,12 @@ const Delivery = () => {
   // 🔹 Mark as Sent
   const markAsSent = async (id) => {
     try {
-      await api.put(`/api/purchase-orders/mark-sent/${id}`); // ✅ Updated
+      await api.put(`/api/purchase-orders/mark-sent/${id}`, {
+        status: "Sent",
+        sentDate: new Date(),
+        senderEmail: User.email,
+        senderPhone: User.phone,
+      }); // ✅ Updated
       fetchOrders();
     } catch (err) {
       console.error("Mark as sent failed:", err);
