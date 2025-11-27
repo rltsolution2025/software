@@ -1,7 +1,14 @@
 import axios from "axios";
 
+// const api = axios.create({
+//   baseURL: "https://software-2-zth5.onrender.com",
+// });
+
 const api = axios.create({
-  baseURL: "https://software-2-zth5.onrender.com",
+  baseURL:
+    process.env.NODE_ENV === "production"
+      ? "https://software-2-zth5.onrender.com"
+      : "http://localhost:5000",
 });
 
 api.interceptors.request.use((config) => {

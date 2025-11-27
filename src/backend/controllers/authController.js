@@ -8,7 +8,7 @@ const login = async (req, res) => {
     console.log("Request:", req.body);
 
     // ✅ Find user based on username + role
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ username , role});
 
     if (!user) {
       return res.status(400).json({ message: "Invalid username or role" });
