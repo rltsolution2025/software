@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import api from "../services/api"; 
-import User from "../../backend/models/User";
+
 
 const Delivery = () => {
   const [orders, setOrders] = useState([]);
@@ -24,8 +24,6 @@ const Delivery = () => {
       await api.put(`/api/purchase-orders/mark-sent/${id}`, {
         status: "Sent",
         sentDate: new Date(),
-        senderEmail: User.email,
-        senderPhone: User.phone,
       }); // ✅ Updated
       fetchOrders();
     } catch (err) {
