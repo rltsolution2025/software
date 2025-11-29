@@ -13,7 +13,7 @@ const app = express();
 DB();
 
 app.use(cors({
-   origin: ["http://localhost:3000", "https://software-gray.vercel.app"],
+   origin: [ "https://software-gray.vercel.app","http://localhost:3000"],
     methods: "GET,POST,PUT,DELETE",
     allowedHeaders: "Content-Type,Authorization",
     credentials: true, 
