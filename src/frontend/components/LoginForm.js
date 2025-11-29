@@ -14,6 +14,9 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+
+
     try {
       await login({username, password, role}); // ✅ passing role here
       navigate('/dashboard');

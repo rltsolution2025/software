@@ -5,10 +5,10 @@ import axios from "axios";
 // });
 
 const api = axios.create({
-  baseURL:
-    process.env.NODE_ENV === "production"
-      ?  "http://localhost:5000"
-      : "https://software-2-zth5.onrender.com",
+  baseURL
+    
+      // : "https://software-2-zth5.onrender.com"
+      : "http://localhost:5000",
 });
 
 api.interceptors.request.use((config) => {
