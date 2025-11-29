@@ -15,7 +15,7 @@ const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(username, password, role); // ✅ passing role here
+      await login({username, password, role}); // ✅ passing role here
       navigate('/dashboard');
     } catch (error) {
       alert('Invalid credentials');

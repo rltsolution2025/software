@@ -23,15 +23,14 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("token");
       }
     }
-
     setLoading(false);
   }, []);
 
- const login = async (username, password, role) => {
+ const login = async ({username, password, role}) => {
   const res = await api.post("/api/auth/login", {
     username,
     password,
-    role,   // ✅ send role to backend
+    role,   
   });
 
   localStorage.setItem("token", res.data.token);
