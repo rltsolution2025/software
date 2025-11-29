@@ -3,8 +3,8 @@ require('dotenv').config();
 
 const connectDB = async () => {
   try {
-    // await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/erp', {
-      await mongoose.connect('mongodb://localhost:27017/erp', {
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/erp', {
+      // await mongoose.connect('mongodb://localhost:27017/erp', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
